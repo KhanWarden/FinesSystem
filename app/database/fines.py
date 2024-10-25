@@ -33,7 +33,6 @@ class Database:
             else:
                 fine_amount = fine_info['amount_more']
 
-            # Добавляем новый случай штрафа сотруднику
             query_add_fine = """
                 INSERT INTO employees_fines (telegram_id, fine_id, fine_date, comments)
                 VALUES ($1, $2, CURRENT_TIMESTAMP, 'Автоштраф')
