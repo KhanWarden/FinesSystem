@@ -1,7 +1,7 @@
 import asyncpg
 
 
-class Database:
+class FinesDatabase:
     def __init__(self, pool):
         self.pool = pool
 
