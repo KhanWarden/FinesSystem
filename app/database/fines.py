@@ -1,53 +1,55 @@
-import asyncpg
+import sqlite3
 
 
 class FinesDatabase:
-    def __init__(self, pool):
-        self.pool = pool
+    def __init__(self, db_path):
+        self.db_path = db_path
 
-    @classmethod
-    async def create(cls, **db_config):
-        pool = await asyncpg.create_pool(**db_config)
-        return cls(pool)
+    def add_fine_case(self, employee_id, fine_id):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
 
-    async def add_fine_case(self, employee_id, fine_id):
-        async with self.pool.acquire() as conn:
-            query_count = """
+            cursor.execute("""
                 SELECT COUNT(*) 
                 FROM employees_fines 
-                WHERE telegram_id = $1 AND fine_id = $2
-            """
-            fine_count = await conn.fetchval(query_count, employee_id, fine_id)
+                WHERE telegram_id = ? AND fine_id = ?
+            """, (employee_id, fine_id))
+            fine_count = cursor.fetchone()[0]
 
-            query_fine_amount = """
+            cursor.execute("""
                 SELECT amount_first, amount_second, amount_more 
                 FROM fines 
-                WHERE fine_id = $1
-            """
-            fine_info = await conn.fetchrow(query_fine_amount, fine_id)
+                WHERE fine_id = ?
+            """, (fine_id,))
+            fine_info = cursor.fetchone()
+
+            if fine_info is None:
+                raise ValueError(f'Fine {fine_id} not found')
 
             if fine_count == 0:
-                fine_amount = fine_info['amount_first']
+                fine_amount = fine_info[0]
             elif fine_count == 1:
-                fine_amount = fine_info['amount_second']
+                fine_amount = fine_info[1]
             else:
-                fine_amount = fine_info['amount_more']
+                fine_amount = fine_info[2]
 
-            query_add_fine = """
+            cursor.execute("""
                 INSERT INTO employees_fines (telegram_id, fine_id, fine_date, comments)
-                VALUES ($1, $2, CURRENT_TIMESTAMP, 'Автоштраф')
-            """
-            await conn.execute(query_add_fine, employee_id, fine_id)
+                VALUES (?, ?, CURRENT_TIMESTAMP, 'Автоштраф')
+            """, (employee_id, fine_id))
+            conn.commit()
+
             return fine_amount
 
-    async def get_statistics(self):
-        async with self.pool.acquire() as conn:
-            query_stats = """
+    def get_statistics(self):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
                 SELECT employees.name AS employee_name, fines.name AS fine_name, COUNT(*) AS fine_count
                 FROM employees_fines
                 JOIN employees ON employees_fines.telegram_id = employees.telegram_id
                 JOIN fines ON employees_fines.fine_id = fines.fine_id
                 GROUP BY employees.name, fines.name
-            """
-            rows = await conn.fetch(query_stats)
+            """)
+            rows = cursor.fetchall()
             return rows

@@ -1,46 +1,44 @@
-import asyncpg
+import sqlite3
 
 
 class AdminDatabase:
-    def __init__(self, pool):
-        self.pool = pool
+    def __init__(self, db_path):
+        self.db_path = db_path
 
-    @classmethod
-    async def create(cls, **db_config):
-        pool = await asyncpg.create_pool(**db_config)
-        return cls(pool)
+    def add_admin_from_users(self, user_id):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
 
-    async def add_admin_from_users(self, user_id):
-        async with self.pool.acquire() as conn:
-            check_user = """
-                SELECT name FROM users WHERE telegram_id = $1
-            """
-            user = await conn.fetchrow(check_user, user_id)
+            cursor.execute("""
+                SELECT name FROM users WHERE telegram_id = ?
+            """, (user_id,))
+            user = cursor.fetchone()
 
-            if not user:
+            if user is None:
                 raise ValueError(f'User {user_id} not found')
 
-            add_admin = """
-            INSERT INTO admins (telegram_id, user_id)
-            VALUES ($1, $2)
-            ON CONFLICT (user_id) DO NOTHING
-            """
-            await conn.execute(add_admin, user_id, user['name'])
+            cursor.execute("""
+                INSERT INTO admins (telegram_id, user_id)
+                VALUES (?, ?)
+                ON CONFLICT (user_id) DO NOTHING
+            """, (user_id, user[0]))
+            conn.commit()
+
             return f"Admin {user_id} added"
 
-    async def remove_admin_from_users(self, user_id):
-        async with self.pool.acquire() as conn:
-            remove_admin = """
-            DELETE FROM admins WHERE telegram_id = $1
-            """
-            user = await conn.fetchrow(remove_admin, user_id)
-            if not user:
-                raise ValueError(f'User {user_id} not found')
+    def remove_admin_from_users(self, user_id):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                DELETE FROM admins WHERE telegram_id = ?
+            """, (user_id,))
+            conn.commit()
 
-            await conn.execute(remove_admin, user_id)
             return f"Admin {user_id} removed"
 
-    async def get_all_admins(self):
-        async with self.pool.acquire() as conn:
-            admins = await conn.fetch("SELECT * FROM admins")
+    def get_all_admins(self):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM admins")
+            admins = cursor.fetchall()
             return admins
