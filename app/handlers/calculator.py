@@ -3,18 +3,27 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from app.keyboards.inline_kbs import game_counter, return_button
+from app.keyboards.reply_kbs import durations
+from app.methods.parser import parse_value
 from app.states import CalculatorStates
+from app.methods.calculator_methods import detailed_count_game_sum, count_game_sum
 
 router = Router()
 
 buttons = {
-    "button_guests_amount": "Количество участников",
-    "button_game_duration": "Длительность игры",
-    "button_range": "Доплата за дальность",
-    "button_percentage_discount": "Скидка в процентах",
-    "button_numerical_discount": "Скидка в сумме",
-    "button_done": "Рассчитать"
+    "button_guests_amount": "👥 Количество участников",
+    "button_game_duration": "🕒 Длительность игры",
+    "button_range": "📍 Доплата за дальность",
+    "button_percentage_discount": "📉 Скидка в процентах",
+    "button_numerical_discount": "💸 Скидка в сумме",
+    "button_doNothing": " ",
+    "button_done": "======== Рассчитать ========"
 }
+
+
+@router.message(CommandStart())
+async def start(message: Message):
+    await message.answer("Пока доступна только команда /count\n\nВ стадии разработки...")
 
 
 @router.message(Command('count'))
@@ -48,12 +57,17 @@ async def button_guests_amount_handler(call: CallbackQuery, state: FSMContext):
 
 @router.message(CalculatorStates.waiting_for_guests_amount)
 async def process_input(message: Message, state: FSMContext):
-    guests_amount = message.text
+
+    if int(message.text) < 0:
+        await message.answer("Неверные данные!")
+        return
+    else:
+        guests_amount = message.text
 
     data = await state.get_data()
     _buttons = data.get("buttons")
     button_id = data.get("button_1")
-    _buttons[button_id] = f"Количество участников: {guests_amount}"
+    _buttons[button_id] = f"👥 Количество участников: {guests_amount}"
     await state.update_data(buttons=_buttons)
 
     await message.answer(
@@ -65,9 +79,10 @@ async def process_input(message: Message, state: FSMContext):
 @router.callback_query(F.data == "button_game_duration")
 async def button_game_duration_handler(call: CallbackQuery, state: FSMContext):
     await state.update_data(button_2="button_game_duration")
-    await call.message.edit_text(
+    await call.message.delete()
+    await call.message.answer(
         text="Введите длительность в минутах (60 / 90 / 120)",
-        reply_markup=return_button()
+        reply_markup=durations()
     )
     await state.set_state(CalculatorStates.waiting_for_duration)
     await call.answer()
@@ -80,7 +95,7 @@ async def process_input(message: Message, state: FSMContext):
     data = await state.get_data()
     _buttons = data.get("buttons")
     button_id = data.get("button_2")
-    _buttons[button_id] = f"Длительность игры: {duration} мин."
+    _buttons[button_id] = f"🕒 Длительность игры: {duration} мин."
     await state.update_data(buttons=_buttons)
 
     await message.answer(
@@ -112,7 +127,7 @@ async def process_input(message: Message, state: FSMContext):
     data = await state.get_data()
     _buttons = data.get("buttons")
     button_id = data.get("button_3")
-    _buttons[button_id] = f"Доплата за дальность: {"{:,.0f}".format(range_value).replace(',', '.')}"
+    _buttons[button_id] = f"📍 Доплата за дальность: {"{:,.0f}".format(range_value).replace(',', '.')}"
     await state.update_data(buttons=_buttons)
 
     await message.answer(
@@ -144,7 +159,7 @@ async def process_input(message: Message, state: FSMContext):
     data = await state.get_data()
     _buttons = data.get("buttons")
     button_id = data.get("button_4")
-    _buttons[button_id] = f"Скидка в процентах: {discount}%"
+    _buttons[button_id] = f"📉 Скидка в процентах: {discount}%"
     await state.update_data(buttons=_buttons)
 
     await message.answer(
@@ -176,7 +191,7 @@ async def process_input(message: Message, state: FSMContext):
     data = await state.get_data()
     _buttons = data.get("buttons")
     button_id = data.get("button_5")
-    _buttons[button_id] = f"Скидка: {"{:,.0f}".format(discount).replace(',', '.')}"
+    _buttons[button_id] = f"💸 Скидка в сумме: {"{:,.0f}".format(discount).replace(',', '.')}"
     await state.update_data(buttons=_buttons)
 
     await message.answer(
@@ -185,13 +200,31 @@ async def process_input(message: Message, state: FSMContext):
     )
 
 
+@router.callback_query(F.data == "button_doNothing")
+async def button_doNothing(call: CallbackQuery):
+    await call.answer(text="Чуть-чуть промахнулся кнопкой", show_alert=True)
+
+
 @router.callback_query(F.data == "button_done")
 async def button_game_duration_handler(call: CallbackQuery, state: FSMContext):
     await state.update_data(button_done="button_done")
 
-    await call.message.edit_text(
-        text='Функция в разработке...'
+    buttons_data = await state.get_data()
+    buttons = buttons_data.get("buttons")
 
+    guests_amount = int(parse_value(buttons.get("button_guests_amount"), "Количество участников"))
+    game_duration = int(parse_value(buttons.get("button_game_duration"), "Длительность игры"))
+    range_value = parse_value(buttons.get("button_range"), "Доплата за дальность")
+    percentage_discount = int(
+        parse_value(buttons.get("button_percentage_discount"), "Скидка в процентах")) if parse_value(
+        buttons.get("button_percentage_discount"), "Скидка в процентах") is not None else None
+    numerical_discount = parse_value(buttons.get("button_numerical_discount"), "Скидка в сумме")
+
+    msg = detailed_count_game_sum(guests_amount, game_duration, range_value, percentage_discount, numerical_discount)
+    total_sum = int(count_game_sum(guests_amount, game_duration, range_value, percentage_discount, numerical_discount))
+
+    await call.message.edit_text(
+        text=f"{msg}\n\n<b>Итоговая сумма:</b> {total_sum:,}".replace(",", ".")
     )
 
-    await call.answer()
+    await state.clear()
