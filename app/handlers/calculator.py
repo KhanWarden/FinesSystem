@@ -1,4 +1,4 @@
-from aiogram import Router, F, Bot
+from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -202,7 +202,7 @@ async def process_input(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "button_doNothing")
 async def button_doNothing(call: CallbackQuery):
-    await call.answer(text="Чуть-чуть промахнулся кнопкой", show_alert=True)
+    await call.answer(text="Чуть-чуть промахнулся кнопкой", show_alert=False)
 
 
 @router.callback_query(F.data == "button_done")
