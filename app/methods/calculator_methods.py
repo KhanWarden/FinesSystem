@@ -97,7 +97,7 @@ def detailed_count_game_sum(guests_amount: int,
 
     if prepayment != 0:
         total_sum -= prepayment
-        details.append(f"- {prepayment} (ПО) = {total_sum:,}")
+        details.append(f"- {prepayment:,} (ПО) = {total_sum:,}")
 
     return "\n".join(details)
 
