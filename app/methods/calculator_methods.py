@@ -46,9 +46,10 @@ def count_game_sum(guests_amount: int,
     if percentage_discount:
         start_sum = subtract_percentage_game_sum(start_sum, percentage_discount)
 
-    total_sum = start_sum + range_value - numerical_discount - prepayment
+    total_sum = start_sum + range_value - numerical_discount
+    total_sum_with_prepayment = total_sum - prepayment
 
-    return total_sum
+    return total_sum, total_sum_with_prepayment
 
 
 def detailed_count_game_sum(guests_amount: int,

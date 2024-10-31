@@ -258,11 +258,14 @@ async def button_game_duration_handler(call: CallbackQuery, state: FSMContext):
 
     msg = detailed_count_game_sum(guests_amount, game_duration, range_value,
                                   percentage_discount, numerical_discount, prepayment)
-    total_sum = int(count_game_sum(guests_amount, game_duration, range_value,
-                                   percentage_discount, numerical_discount, prepayment))
-
+    total_sum, total_sum_with_prepayment = count_game_sum(guests_amount, game_duration, range_value,
+                                                          percentage_discount, numerical_discount, prepayment)
+    if total_sum == total_sum_with_prepayment:
+        text_answer = f"{msg}\n\n<b>Итоговая сумма:</b> {total_sum:,}"
+    else:
+        text_answer = f"{msg}\n\n<b>Итоговая сумма:</b> {total_sum:,}\n<b>Сумма к оплате с учетом ПО:</b> {total_sum_with_prepayment:,}"
     await call.message.edit_text(
-        text=f"{msg}\n\n<b>Итоговая сумма:</b> {total_sum:,}".replace(",", ".")
+        text=text_answer.replace(",", ".")
     )
 
     await state.clear()
