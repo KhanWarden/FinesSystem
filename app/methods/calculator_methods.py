@@ -26,7 +26,12 @@ def count_game_sum(guests_amount: int,
                    duration: int,
                    range_value: Optional[str] = None,
                    percentage_discount: Optional[int] = None,
-                   numerical_discount: Optional[str] = None):
+                   numerical_discount: Optional[str] = None,
+                   prepayment: Optional[str] = None):
+    if prepayment:
+        prepayment = int(prepayment.replace(".", ""))
+    else:
+        prepayment = 0
     if range_value:
         range_value = int(range_value.replace(".", ""))
     else:
@@ -41,7 +46,7 @@ def count_game_sum(guests_amount: int,
     if percentage_discount:
         start_sum = subtract_percentage_game_sum(start_sum, percentage_discount)
 
-    total_sum = start_sum + range_value - numerical_discount
+    total_sum = start_sum + range_value - numerical_discount - prepayment
 
     return total_sum
 
@@ -50,9 +55,11 @@ def detailed_count_game_sum(guests_amount: int,
                             duration: int,
                             range_value: Optional[str] = None,
                             percentage_discount: Optional[int] = None,
-                            numerical_discount: Optional[str] = None) -> str:
+                            numerical_discount: Optional[str] = None,
+                            prepayment: Optional[str] = None) -> str:
     range_value = int(range_value.replace(".", "")) if range_value else 0
     numerical_discount = int(numerical_discount.replace(".", "")) if numerical_discount else 0
+    prepayment = int(prepayment.replace(".", "")) if prepayment else 0
 
     start_sum = duration_calculation(guests_amount, duration)
     details = []
@@ -87,6 +94,10 @@ def detailed_count_game_sum(guests_amount: int,
     total_sum += range_value
     if range_value != 0:
         details.append(f"+ {range_value:,} (За дальность) = {total_sum:,}")
+
+    if prepayment != 0:
+        total_sum -= prepayment
+        details.append(f"- {prepayment} (ПО) = {total_sum:,}")
 
     return "\n".join(details)
 

@@ -12,6 +12,14 @@ def game_counter(buttons_data):
     return inline_kb
 
 
+def prepayment_button():
+    inline_kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="5.000", callback_data='button_5000'),
+         InlineKeyboardButton(text="25.000", callback_data='button_25000')],
+    ])
+    return inline_kb
+
+
 def return_button():
     inline_kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text='Назад', callback_data='return')],

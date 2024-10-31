@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from app.keyboards.inline_kbs import game_counter, return_button
+from app.keyboards.inline_kbs import game_counter, return_button, prepayment_button
 from app.keyboards.reply_kbs import durations
 from app.methods.parser import parse_value
 from app.states import CalculatorStates
@@ -16,7 +16,8 @@ buttons = {
     "button_range": "📍 Доплата за дальность",
     "button_percentage_discount": "📉 Скидка в процентах",
     "button_numerical_discount": "💸 Скидка в сумме",
-    "button_doNothing": " ",
+    "button_do_nothing": " ",
+    "button_prepayment": "💳 Предоплата",
     "button_done": "======== Рассчитать ========"
 }
 
@@ -57,7 +58,6 @@ async def button_guests_amount_handler(call: CallbackQuery, state: FSMContext):
 
 @router.message(CalculatorStates.waiting_for_guests_amount)
 async def process_input(message: Message, state: FSMContext):
-
     if int(message.text) < 0:
         await message.answer("Неверные данные!")
         return
@@ -187,7 +187,6 @@ async def process_input(message: Message, state: FSMContext):
         discount = int(discount)
     except ValueError:
         await message.answer(text='Это не число!')
-
     data = await state.get_data()
     _buttons = data.get("buttons")
     button_id = data.get("button_5")
@@ -200,9 +199,45 @@ async def process_input(message: Message, state: FSMContext):
     )
 
 
-@router.callback_query(F.data == "button_doNothing")
-async def button_doNothing(call: CallbackQuery):
+@router.callback_query(F.data == "button_do_nothing")
+async def button_do_nothing_handler(call: CallbackQuery):
     await call.answer(text="Чуть-чуть промахнулся кнопкой", show_alert=False)
+
+
+@router.callback_query(F.data == "button_prepayment")
+async def button_prepayment_handler(call: CallbackQuery):
+    await call.message.edit_text(
+        text="Выберите сумму предоплаты",
+        reply_markup=prepayment_button()
+    )
+
+
+@router.callback_query(F.data.in_({"button_5000", "button_25000"}))
+async def button_prepayment_handler(call: CallbackQuery, state: FSMContext):
+    await state.update_data(button_5000="button_5000", button_25000="button_25000")
+    data = await state.get_data()
+    _buttons = data.get("buttons")
+    button_id = data.get("button_5000")
+
+    if call.data == "button_5000":
+        await state.update_data(button_prepayment_sum="button_prepayment")
+        data = await state.get_data()
+        _buttons = data.get("buttons")
+        button_id = data.get("button_prepayment_sum")
+        _buttons[button_id] = f"💳 Предоплата: 5.000"
+        await state.update_data(buttons=_buttons)
+    elif call.data == "button_25000":
+        await state.update_data(button_prepayment_sum="button_prepayment")
+        data = await state.get_data()
+        _buttons = data.get("buttons")
+        button_id = data.get("button_prepayment_sum")
+        _buttons[button_id] = f"💳 Предоплата: 25.000"
+        await state.update_data(buttons=_buttons)
+
+    await call.message.edit_text(
+        text="Ниже кнопки. Нажмите на необходимую для изменения информации.",
+        reply_markup=game_counter(_buttons)
+    )
 
 
 @router.callback_query(F.data == "button_done")
@@ -219,9 +254,12 @@ async def button_game_duration_handler(call: CallbackQuery, state: FSMContext):
         parse_value(buttons.get("button_percentage_discount"), "Скидка в процентах")) if parse_value(
         buttons.get("button_percentage_discount"), "Скидка в процентах") is not None else None
     numerical_discount = parse_value(buttons.get("button_numerical_discount"), "Скидка в сумме")
+    prepayment = parse_value(buttons.get("button_prepayment"), "Предоплата")
 
-    msg = detailed_count_game_sum(guests_amount, game_duration, range_value, percentage_discount, numerical_discount)
-    total_sum = int(count_game_sum(guests_amount, game_duration, range_value, percentage_discount, numerical_discount))
+    msg = detailed_count_game_sum(guests_amount, game_duration, range_value,
+                                  percentage_discount, numerical_discount, prepayment)
+    total_sum = int(count_game_sum(guests_amount, game_duration, range_value,
+                                   percentage_discount, numerical_discount, prepayment))
 
     await call.message.edit_text(
         text=f"{msg}\n\n<b>Итоговая сумма:</b> {total_sum:,}".replace(",", ".")
