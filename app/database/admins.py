@@ -1,44 +1,41 @@
-import sqlite3
+from pathlib import Path
+import aiosqlite
+from typing import List, Tuple
+
+project_folder = Path(__file__).parent.parent.parent
+DB_PATH = project_folder / "database.db"
 
 
-class AdminDatabase:
-    def __init__(self, db_path):
-        self.db_path = db_path
+async def make_admin(telegram_id: int):
+    async with aiosqlite.connect(DB_PATH) as conn:
+        await conn.execute("""
+        UPDATE employees SET is_admin = 1 WHERE telegram_id = ?;
+        """, (telegram_id,))
+        await conn.commit()
+        await conn.close()
+    return f"ID: {telegram_id} добавлен в список администраторов"
 
-    def add_admin_from_users(self, user_id):
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
 
-            cursor.execute("""
-                SELECT name FROM users WHERE telegram_id = ?
-            """, (user_id,))
-            user = cursor.fetchone()
+async def remove_admin_from_users(telegram_id: int):
+    async with aiosqlite.connect(DB_PATH) as conn:
+        await conn.execute("""
+            UPDATE employees SET is_admin = 0 WHERE telegram_id = ?;
+        """, (telegram_id,))
+        await conn.commit()
+        await conn.close()
+        return f"<b>ID: {telegram_id}</b> удалён из списка администраторов"
 
-            if user is None:
-                raise ValueError(f'User {user_id} not found')
 
-            cursor.execute("""
-                INSERT INTO admins (telegram_id, user_id)
-                VALUES (?, ?)
-                ON CONFLICT (user_id) DO NOTHING
-            """, (user_id, user[0]))
-            conn.commit()
+async def get_all_admins() -> List:
+    async with aiosqlite.connect(DB_PATH) as conn:
+        async with conn.execute("""SELECT telegram_id, is_admin FROM employees WHERE is_admin = 1;""") as cursor:
+            admins = await cursor.fetchall()
 
-            return f"Admin {user_id} added"
+    return admins
 
-    def remove_admin_from_users(self, user_id):
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                DELETE FROM admins WHERE telegram_id = ?
-            """, (user_id,))
-            conn.commit()
 
-            return f"Admin {user_id} removed"
-
-    def get_all_admins(self):
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM admins")
-            admins = cursor.fetchall()
-            return admins
+async def is_admin(telegram_id: int) -> bool:
+    async with aiosqlite.connect(DB_PATH) as conn:
+        cursor = await conn.execute("""SELECT is_admin FROM employees WHERE is_admin = ?""", (telegram_id,))
+        row = await cursor.fetchone()
+        return row is not None and row[0] == 1
