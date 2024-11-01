@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from app.keyboards.inline_kbs import game_counter, return_button, prepayment_button
+from app.keyboards.inline_kbs import game_counter, return_button, prepayment_button, main_kb
 from app.keyboards.reply_kbs import durations
 from app.methods.parser import parse_value
 from app.states import CalculatorStates
@@ -18,20 +18,25 @@ buttons = {
     "button_numerical_discount": "💸 Скидка в сумме",
     "button_do_nothing": " ",
     "button_prepayment": "💳 Предоплата",
-    "button_done": "======== Рассчитать ========"
+    "button_done": "======== Рассчитать ========",
+    "to_main_menu": "↩️ Вернуться в главное меню"
 }
 
 
-@router.message(CommandStart())
-async def start(message: Message):
-    await message.answer("Пока доступна только команда /count\n\nВ стадии разработки...")
+@router.callback_query(F.data == "to_main_menu")
+async def return_to_main_menu(call: CallbackQuery):
+    user_id = call.from_user.id
+    await call.message.edit_text(
+        text="На стадии разработки...",
+        reply_markup=main_kb(user_id)
+    )
 
 
-@router.message(Command('count'))
-async def count_sum(message: Message, state: FSMContext):
+@router.callback_query(F.data == "count")
+async def count_sum(call: CallbackQuery, state: FSMContext):
     await state.update_data(buttons=buttons.copy())
-    await message.answer('Ниже кнопки. Нажмите на необходимую для изменения информации.',
-                         reply_markup=game_counter(buttons))
+    await call.message.edit_text('Ниже кнопки. Нажмите на необходимую для изменения информации.',
+                                 reply_markup=game_counter(buttons))
 
 
 @router.callback_query(F.data == "return")
