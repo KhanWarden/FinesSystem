@@ -14,7 +14,7 @@ async def certificate_start_handler(call: CallbackQuery):
 async def to_main_menu_handler(call: CallbackQuery):
     await call.message.edit_text(
         text="На стадии разработки...",
-        reply_markup=main_kb()
+        reply_markup=await main_kb(call.from_user.id)
     )
 
 

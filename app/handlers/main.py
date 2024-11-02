@@ -8,8 +8,6 @@ router = Router()
 
 @router.message(CommandStart())
 async def start(message: Message):
-    inline_kb = main_kb()
-    # if message.from_user.id in admins:
-    #     inline_kb.append(InlineKeyboardButton(text="⚙️ Админ панель", callback_data="admin_panel"))
+    user_id = message.from_user.id
     await message.answer("На стадии разработки...",
-                         reply_markup=main_kb())
+                         reply_markup=await main_kb(telegram_id=user_id))

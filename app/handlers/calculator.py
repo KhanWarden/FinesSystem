@@ -28,7 +28,7 @@ async def return_to_main_menu(call: CallbackQuery):
     user_id = call.from_user.id
     await call.message.edit_text(
         text="На стадии разработки...",
-        reply_markup=main_kb(user_id)
+        reply_markup=await main_kb(user_id)
     )
 
 
