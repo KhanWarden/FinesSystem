@@ -22,18 +22,54 @@ async def get_total_employees() -> int:
     return total[0] if total else 0
 
 
-async def add_employee(telegram_id: int, name: str):
+async def add_employee(telegram_id: int, name: str) -> bool:
     async with aiosqlite.connect(DB_PATH) as conn:
         cursor = await conn.cursor()
+
+        await cursor.execute("""SELECT 1 FROM employees WHERE name = ?""", (name,))
+        exists = await cursor.fetchone()
+
+        if exists:
+            await conn.close()
+            return False
+
         await cursor.execute("""INSERT INTO employees (telegram_id, name, is_admin) VALUES (?, ?, FALSE)""",
                              (telegram_id, name))
         await conn.commit()
         await conn.close()
+
+    return True
 
 
 async def delete_employee(employee_name: str):
     async with aiosqlite.connect(DB_PATH) as conn:
         cursor = await conn.cursor()
         await cursor.execute("""DELETE FROM employees WHERE name = ?""", (employee_name,))
+        await conn.commit()
+        await conn.close()
+
+
+async def rename_employee(employee_name: str, new_name: str) -> bool:
+    async with aiosqlite.connect(DB_PATH) as conn:
+        cursor = await conn.cursor()
+
+        await cursor.execute("""SELECT 1 FROM employees WHERE name = ?""", (new_name,))
+        exists = await cursor.fetchone()
+
+        if exists:
+            await conn.close()
+            return False
+
+        await cursor.execute("""UPDATE employees SET name = ? WHERE name = ?""", (new_name, employee_name))
+        await conn.commit()
+        await conn.close()
+    return True
+
+
+async def change_position_func(employee_name: str, new_position: str):
+    async with aiosqlite.connect(DB_PATH) as conn:
+        cursor = await conn.cursor()
+        await cursor.execute("""UPDATE employees SET position = ? WHERE name = ?""",
+                             (new_position, employee_name))
         await conn.commit()
         await conn.close()

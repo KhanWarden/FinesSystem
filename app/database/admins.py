@@ -41,6 +41,24 @@ async def get_total_admins() -> int:
     return total[0] if total else 0
 
 
+async def get_non_admins(page: int) -> List:
+    items_per_page = 5
+    offset = page * items_per_page
+    async with aiosqlite.connect(DB_PATH) as conn:
+        cursor = await conn.execute("""SELECT name FROM employees WHERE is_admin = FALSE LIMIT ? OFFSET ?""",
+                                    (items_per_page, offset))
+        admins = await cursor.fetchall()
+    return [admin[0] for admin in admins]
+
+
+async def get_total_non_admins() -> int:
+    async with aiosqlite.connect(DB_PATH) as conn:
+        async with conn.execute("""SELECT COUNT(*) FROM employees WHERE is_admin = FALSE""") as cursor:
+            total = await cursor.fetchone()
+    return total[0] if total else 0
+
+
+
 async def is_admin(telegram_id: int) -> bool:
     async with aiosqlite.connect(DB_PATH) as conn:
         cursor = await conn.cursor()
