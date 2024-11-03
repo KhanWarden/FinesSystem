@@ -1,3 +1,9 @@
 .idea
 app/config.py
 database.db
+
+# Certificates
+/app/certificates/src/cert_5k.jpg
+/app/certificates/src/cert_10k.jpg
+/app/certificates/output/
+/app/certificates/fonts/MyriadPro-Regular.otf
