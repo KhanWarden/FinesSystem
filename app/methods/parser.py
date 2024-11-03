@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 
 def parse_value(text: str, keyword: str):
@@ -9,3 +10,11 @@ def parse_value(text: str, keyword: str):
         return match.group(1)
     else:
         return None
+
+
+def is_valid_date(date_string: str) -> bool:
+    try:
+        datetime.strptime(date_string, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
