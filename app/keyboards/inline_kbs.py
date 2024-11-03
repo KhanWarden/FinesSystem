@@ -9,6 +9,16 @@ class EmployeeCallback(CallbackData, prefix="employee"):
     name: str
 
 
+class NonAdminCallback(CallbackData, prefix="non_admin"):
+    action: str
+    name: str
+
+
+class AdminCallback(CallbackData, prefix="admin"):
+    action: str
+    name: str
+
+
 async def main_kb(telegram_id):
     inline_kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📱 Калькулятор", callback_data='count'),
@@ -37,7 +47,7 @@ def interrupt_employee_admin_panel():
         [InlineKeyboardButton(text="🟢 Добавить", callback_data='add_employee'),
          InlineKeyboardButton(text="🔴 Удалить", callback_data='delete_employee')],
         [InlineKeyboardButton(text="📌 Дать права администратора", callback_data='add_admin')],
-        [InlineKeyboardButton(text="⚠️ Забрать права администратора", callback_data='delete_admin')],
+        [InlineKeyboardButton(text="⚠️ Забрать права администратора", callback_data='remove_admin')],
         [InlineKeyboardButton(text="🖊 Изменить имя сотрудника", callback_data='rename_employee')],
         [InlineKeyboardButton(text="🖊 Изменить должность сотрудника", callback_data='change_position')],
         [InlineKeyboardButton(text="↩️ Назад", callback_data='admin_panel')]
@@ -59,7 +69,7 @@ def back_to_employees_admin_panel_kb():
     return inline_kb
 
 
-def create_pagination_kb(employees, page, total_employees, action):
+def create_employees_pagination_kb(employees, page, total_employees, action):
     inline_kb = InlineKeyboardMarkup(inline_keyboard=[])
 
     for employee in employees:
@@ -78,6 +88,54 @@ def create_pagination_kb(employees, page, total_employees, action):
 
     if (page + 1) * 5 < total_employees:
         pagination_buttons.append(InlineKeyboardButton(text="➡️ Вперед", callback_data=f"page_{page + 1}"))
+
+    inline_kb.inline_keyboard.append(pagination_buttons)
+    return inline_kb
+
+
+def create_non_admins_pagination_kb(non_admins, page, total_non_admins, action):
+    inline_kb = InlineKeyboardMarkup(inline_keyboard=[])
+
+    for non_admin in non_admins:
+        inline_kb.inline_keyboard.append(
+            [InlineKeyboardButton(
+                text=non_admin,
+                callback_data=NonAdminCallback(action=action, name=non_admin).pack()
+            )]
+        )
+
+    pagination_buttons = []
+    if page > 0:
+        pagination_buttons.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"non_admin_page_{page - 1}"))
+
+    pagination_buttons.append(InlineKeyboardButton(text="↩️ В меню", callback_data="employees"))
+
+    if (page + 1) * 5 < total_non_admins:
+        pagination_buttons.append(InlineKeyboardButton(text="➡️ Вперед", callback_data=f"non_admin_page_{page + 1}"))
+
+    inline_kb.inline_keyboard.append(pagination_buttons)
+    return inline_kb
+
+
+def create_admins_pagination_kb(admins, page, total_admins, action):
+    inline_kb = InlineKeyboardMarkup(inline_keyboard=[])
+
+    for admin in admins:
+        inline_kb.inline_keyboard.append(
+            [InlineKeyboardButton(
+                text=admin,
+                callback_data=AdminCallback(action=action, name=admin).pack()
+            )]
+        )
+
+    pagination_buttons = []
+    if page > 0:
+        pagination_buttons.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"admins_page_{page - 1}"))
+
+    pagination_buttons.append(InlineKeyboardButton(text="↩️ В меню", callback_data="employees"))
+
+    if (page + 1) * 5 < total_admins:
+        pagination_buttons.append(InlineKeyboardButton(text="➡️ Вперед", callback_data=f"admins_page_{page + 1}"))
 
     inline_kb.inline_keyboard.append(pagination_buttons)
     return inline_kb

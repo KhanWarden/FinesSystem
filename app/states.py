@@ -6,6 +6,8 @@ class AdminStates(StatesGroup):
     wait_for_admin_id = State()
     wait_for_new_employee_id = State()
     wait_for_new_employee_name = State()
+    change_name = State()
+    change_position = State()
 
 
 class CalculatorStates(StatesGroup):
