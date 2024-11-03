@@ -16,3 +16,8 @@ class CalculatorStates(StatesGroup):
     waiting_for_range_value = State()
     waiting_for_percentage_discount = State()
     waiting_for_numerical_discount = State()
+
+
+class CertificateStates(StatesGroup):
+    date_from_user = State()
+    id_of_certificate = State()
