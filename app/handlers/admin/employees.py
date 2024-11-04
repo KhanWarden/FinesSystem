@@ -7,7 +7,8 @@ from app.keyboards.inline_kbs import (main_kb, admin_panel_kb, interrupt_employe
                                       back_to_employees_admin_panel_kb, EmployeeCallback,
                                       create_employees_pagination_kb,
                                       create_non_admins_pagination_kb, NonAdminCallback,
-                                      create_admins_pagination_kb, AdminCallback)
+                                      create_admins_pagination_kb, AdminCallback, EmployeeDeleteCallback,
+                                      employees_to_delete_pagination_kb)
 from app.states import AdminStates
 from app.database import make_admin
 
@@ -17,7 +18,7 @@ router = Router()
 @router.callback_query(F.data == "to_main_menu")
 async def to_main_menu(call: CallbackQuery):
     await call.message.edit_text(
-        text="На стадии разработки...",
+        text=f"Добро пожаловать, {call.from_user.first_name}!",
         reply_markup=(await main_kb(call.from_user.id))
     )
 
@@ -61,11 +62,20 @@ async def wait_for_new_employee_to_add(message: Message, state: FSMContext):
 @router.message(AdminStates.wait_for_new_employee_name)
 async def wait_for_new_employee_name(message: Message, state: FSMContext):
     name = message.text
+    await state.update_data(name=name)
+    await message.answer("Теперь введите должность сотрудника")
+    await state.set_state(AdminStates.wait_for_position_new_employee)
+
+
+@router.message(AdminStates.wait_for_position_new_employee)
+async def wait_for_position_new_employee(message: Message, state: FSMContext):
+    position = message.text
 
     data = await state.get_data()
     user_id = data.get("user_id")
+    name = data.get("name")
 
-    if await add_employee(user_id, name):
+    if await add_employee(user_id, name, position):
         await message.answer(f"{name} добавлен в список сотрудников.")
         await message.answer(text=f"Добро пожаловать, {message.from_user.full_name}!",
                              reply_markup=interrupt_employee_admin_panel())
@@ -80,7 +90,7 @@ async def wait_for_new_employee_name(message: Message, state: FSMContext):
 async def delete_employee_handler(call: CallbackQuery):
     total_employees = await get_total_employees()
     employees = await get_employees(0)
-    keyboard = create_employees_pagination_kb(employees, 0, total_employees, action="delete_employee")
+    keyboard = employees_to_delete_pagination_kb(employees, 0, total_employees, action="delete_employee")
     await call.message.edit_text("Выберите сотрудника для удаления",
                                  reply_markup=keyboard)
 
@@ -91,15 +101,15 @@ async def paginate_employees(call: CallbackQuery):
     total_employees = await get_total_employees()
 
     employees = await get_employees(page)
-    keyboard = create_employees_pagination_kb(employees, page, total_employees, action="delete_employee")
+    keyboard = employees_to_delete_pagination_kb(employees, page, total_employees, action="delete_employee")
     await call.message.edit_text("Выберите сотрудника для удаления",
                                  reply_markup=keyboard)
 
     await call.answer()
 
 
-@router.callback_query(EmployeeCallback.filter(F.action == "delete_employee"))
-async def handle_delete_employee(call: CallbackQuery, callback_data: EmployeeCallback):
+@router.callback_query(EmployeeDeleteCallback.filter(F.action == "delete_employee"))
+async def handle_delete_employee(call: CallbackQuery, callback_data: EmployeeDeleteCallback):
     name = callback_data.name
     await delete_employee(name)
     await call.message.edit_text(f"Сотрудник {name} удалён.",

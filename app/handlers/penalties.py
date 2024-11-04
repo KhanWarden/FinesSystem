@@ -6,4 +6,4 @@ router = Router()
 
 @router.callback_query(F.data == "penalties")
 async def penalties_start_handler(call: CallbackQuery):
-    await call.answer("Функция в разработке", show_alert=True)
+    await call.answer("В разработке", show_alert=True)

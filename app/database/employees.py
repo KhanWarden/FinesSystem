@@ -22,7 +22,7 @@ async def get_total_employees() -> int:
     return total[0] if total else 0
 
 
-async def add_employee(telegram_id: int, name: str) -> bool:
+async def add_employee(telegram_id: int, name: str, position: str) -> bool:
     async with aiosqlite.connect(DB_PATH) as conn:
         cursor = await conn.cursor()
 
@@ -33,8 +33,8 @@ async def add_employee(telegram_id: int, name: str) -> bool:
             await conn.close()
             return False
 
-        await cursor.execute("""INSERT INTO employees (telegram_id, name, is_admin) VALUES (?, ?, FALSE)""",
-                             (telegram_id, name))
+        await cursor.execute("""INSERT INTO employees (telegram_id, name, is_admin, position) VALUES (?, ?, FALSE, ?)""",
+                             (telegram_id, name, position))
         await conn.commit()
         await conn.close()
 
