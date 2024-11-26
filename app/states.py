@@ -22,3 +22,7 @@ class CalculatorStates(StatesGroup):
 class CertificateStates(StatesGroup):
     date_from_user = State()
     id_of_certificate = State()
+
+
+class BarrierStates(StatesGroup):
+    add_user = State()

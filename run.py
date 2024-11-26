@@ -4,6 +4,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
+
+from app.database import init_database
 from app.handlers import main_router
 from app.config import API_TOKEN
 
@@ -15,6 +17,7 @@ dp.include_router(main_router)
 
 
 async def main():
+    await init_database()
     await dp.start_polling(bot)
     await bot.delete_webhook(drop_pending_updates=True)
 

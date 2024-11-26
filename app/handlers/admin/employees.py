@@ -23,14 +23,6 @@ async def to_main_menu(call: CallbackQuery):
     )
 
 
-@router.callback_query(F.data == "admin_panel")
-async def admin_panel(call: CallbackQuery):
-    await call.message.edit_text(
-        text=f"Добро пожаловать, {call.from_user.full_name}!",
-        reply_markup=admin_panel_kb()
-    )
-
-
 @router.callback_query(F.data == "employees")
 async def employees_handler(call: CallbackQuery):
     await call.message.edit_text("Выберите нужную кнопку для взаимодействия с сотрудниками",

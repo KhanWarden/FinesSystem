@@ -7,8 +7,7 @@ from aiogram import Router, F
 from app.database import create_certificate, is_used_certificate
 from app.keyboards.inline_kbs import certificates_kb, main_kb, certificates_sum_kb, \
     certificate_date_for_5k_kb, certificate_date_for_10k_kb
-from app.methods.certificate.draw import draw_5k, draw_10k
-from app.methods.parser import is_valid_date
+from app.methods import draw_5k, draw_10k, is_valid_date
 from app.states import CertificateStates
 
 router = Router()

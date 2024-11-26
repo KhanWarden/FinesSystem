@@ -25,3 +25,10 @@ def return_button():
         [InlineKeyboardButton(text='Назад', callback_data='return')],
     ])
     return inline_kb
+
+
+def return_to_main_menu_kb():
+    inline_kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="↩️ В главное меню", callback_data="to_main_menu")]
+    ])
+    return inline_kb

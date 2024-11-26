@@ -2,11 +2,10 @@ from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from app.keyboards.inline_kbs import game_counter, return_button, prepayment_button, main_kb
+from app.keyboards.inline_kbs import game_counter, return_button, prepayment_button, main_kb, return_to_main_menu_kb
 from app.keyboards.reply_kbs import durations
-from app.methods.parser import parse_value
 from app.states import CalculatorStates
-from app.methods.calculator_methods import detailed_count_game_sum, count_game_sum
+from app.methods import parse_value, detailed_count_game_sum, count_game_sum
 
 router = Router()
 
@@ -270,7 +269,8 @@ async def button_game_duration_handler(call: CallbackQuery, state: FSMContext):
     else:
         text_answer = f"{msg}\n\n<b>Итоговая сумма:</b> {total_sum:,}\n<b>Сумма к оплате с учетом ПО:</b> {total_sum_with_prepayment:,}"
     await call.message.edit_text(
-        text=text_answer.replace(",", ".")
+        text=text_answer.replace(",", "."),
+        reply_markup=return_to_main_menu_kb()
     )
 
     await state.clear()
