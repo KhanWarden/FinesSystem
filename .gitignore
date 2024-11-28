@@ -1,6 +1,7 @@
 .idea
 app/config.py
 database.db
+certificates.db
 
 # Certificates
 /app/certificates/src/cert_5k.jpg
