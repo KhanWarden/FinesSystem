@@ -2,8 +2,8 @@ from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from app.database import get_unmuted_users_from_barrier, get_all_users_from_barrier, add_user_to_barrier, mute_user, \
-    unmute_user
-from app.keyboards.inline_kbs import open_kb, main_kb
+    unmute_user, get_all_users_from_gate
+from app.keyboards.inline_kbs import open_kb, main_kb, gate_kb
 
 router = Router()
 
@@ -26,6 +26,30 @@ async def button_handler(call: CallbackQuery):
     result = re.sub(r'\..*', '', text, flags=re.DOTALL)
 
     if user in await get_all_users_from_barrier():
+        await call.message.edit_text(text=result,
+                                     reply_markup=open_kb(f"✅ {user} открыл ✅"))
+    else:
+        await call.answer("У вас нет доступа!", show_alert=True)
+
+
+@router.message(Command("gate"))
+async def gate_barrier_handler(message: Message):
+    username = message.from_user.username
+
+    await message.delete()
+    users = await get_all_users_from_gate()
+    await message.answer(f"Запрос на открытие ворот с Айтиева от @{username}.\n\n{" ".join(users)}",
+                         reply_markup=gate_kb("Не открыто"))
+
+
+@router.callback_query(F.data == "gate_barrier")
+async def button_handler(call: CallbackQuery):
+    user = f"@{call.from_user.username}"
+    import re
+    text = call.message.text
+    result = re.sub(r'\..*', '', text, flags=re.DOTALL)
+
+    if user in await get_all_users_from_gate():
         await call.message.edit_text(text=result,
                                      reply_markup=open_kb(f"✅ {user} открыл ✅"))
     else:

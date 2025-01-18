@@ -45,3 +45,24 @@ async def unmute_user(username):
         await conn.execute("""UPDATE barrier SET is_muted = FALSE WHERE username = ?""",
                            (username,))
         await conn.commit()
+
+
+async def add_user_to_gate(username):
+    async with aiosqlite.connect(DB_PATH) as conn:
+        cursor = await conn.execute("""INSERT INTO gate (username) VALUES (?)""",
+                                    (username,))
+        await conn.commit()
+
+
+async def get_all_users_from_gate():
+    async with aiosqlite.connect(DB_PATH) as conn:
+        cursor = await conn.execute("""SELECT username FROM gate""")
+        result = await cursor.fetchall()
+        return [row[0] for row in result]
+
+
+async def delete_user_from_gate(username):
+    async with aiosqlite.connect(DB_PATH) as conn:
+        await conn.execute("""DELETE FROM gate WHERE username = ?""",
+                           (username,))
+        await conn.commit()

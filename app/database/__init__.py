@@ -6,7 +6,8 @@ from .employees import (get_employees, add_employee, delete_employee, get_total_
                         change_position_func)
 from .certificates import create_certificate, is_used_certificate
 from .barrier import (add_user_to_barrier, get_unmuted_users_from_barrier, get_all_users_from_barrier, mute_user,
-                      delete_user_from_barrier, unmute_user)
+                      delete_user_from_barrier, unmute_user, get_all_users_from_gate, delete_user_from_gate,
+                      add_user_to_gate)
 
 
 __all__ = ['init_database',
@@ -30,16 +31,15 @@ __all__ = ['init_database',
            'get_unmuted_users_from_barrier',
            'mute_user',
            'unmute_user',
-           'delete_user_from_barrier'
+           'delete_user_from_barrier',
+           'get_all_users_from_gate',
+           'add_user_to_gate',
+           'delete_user_from_gate'
            ]
 
 
 async def init_database():
     async with aiosqlite.connect('database.db') as conn:
-        await conn.execute("""CREATE TABLE IF NOT EXISTS certificates (
-                              id INTEGER PRIMARY KEY AUTOINCREMENT,
-                              date DATE NOT NULL,
-                              is_used BOOLEAN NOT NULL)""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS employees (
                               telegram_id BIGINT PRIMARY KEY,
                               name VARCHAR(50) NOT NULL,

@@ -2,7 +2,7 @@ from pathlib import Path
 import aiosqlite
 
 project_folder = Path(__file__).parent.parent.parent
-DB_FILE = project_folder / "database.db"
+DB_FILE = project_folder / "certificates.db"
 
 
 async def create_certificate(date):

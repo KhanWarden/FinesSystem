@@ -25,4 +25,5 @@ class CertificateStates(StatesGroup):
 
 
 class BarrierStates(StatesGroup):
-    add_user = State()
+    username_barrier = State()
+    username_gate = State()

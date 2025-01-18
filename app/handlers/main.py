@@ -3,6 +3,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from app.keyboards.inline_kbs import main_kb
+from app.methods import is_only_digits
 
 router = Router()
 
@@ -17,3 +18,14 @@ async def start(message: Message, state: FSMContext):
     else:
         await message.delete()
         await message.answer("Бот работает только в ЛС.")
+
+
+@router.message(Command("link"))
+async def id_handler(message: Message):
+    arg = message.text.split(" ")
+    if is_only_digits(arg[1]):
+        await message.delete()
+        link = f"https://plus-erp.app/sales/order/preview/{arg}?tab=description"
+        await message.answer(link)
+    else:
+        return

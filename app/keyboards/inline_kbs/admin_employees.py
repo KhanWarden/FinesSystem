@@ -27,6 +27,7 @@ def admin_panel_kb():
         [InlineKeyboardButton(text="👥 Сотрудники", callback_data='employees')],
         [InlineKeyboardButton(text="❗️ Штрафы", callback_data='penalties_admin')],
         [InlineKeyboardButton(text="🚧 Шлагбаум", callback_data="barrier_admin")],
+        [InlineKeyboardButton(text="🚧 Ворота", callback_data='gate_admin')],
         [InlineKeyboardButton(text="↩️ В главное меню", callback_data='to_main_menu')]
     ])
     return inline_kb

@@ -8,8 +8,9 @@ from .admin_employees import (AdminCallback, NonAdminCallback, EmployeeCallback,
 from .certificate_kbs import (certificates_kb, certificates_sum_kb,
                               certificate_date_for_5k_kb, certificate_date_for_10k_kb)
 from .calculator_kbs import game_counter, prepayment_button, return_button, return_to_main_menu_kb
-from .barrier import open_kb
-from .admin_barrier import admin_barrier_kb, users_to_delete_pagination_kb, UsersBarrier
+from .barrier import open_kb, gate_kb
+from .admin_barrier import (admin_barrier_kb, users_to_delete_from_barrier_pagination_kb, UsersBarrier,
+                            admin_gate_kb, users_to_delete_from_gate_pagination_kb)
 
 
 __all__ = ['main_kb',
@@ -35,8 +36,11 @@ __all__ = ['main_kb',
            'return_to_main_menu_kb',
 
            'open_kb',
+           'gate_kb',
            'admin_barrier_kb',
-           'users_to_delete_pagination_kb',
+           'admin_gate_kb',
+           'users_to_delete_from_gate_pagination_kb',
+           'users_to_delete_from_barrier_pagination_kb',
            'UsersBarrier'
            ]
 

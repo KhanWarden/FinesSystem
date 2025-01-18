@@ -18,3 +18,11 @@ def is_valid_date(date_string: str) -> bool:
         return True
     except ValueError:
         return False
+
+
+def is_only_digits(data):
+    try:
+        pattern = r'^\d+$'
+        return bool(re.fullmatch(pattern, data))
+    except ValueError:
+        return False
