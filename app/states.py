@@ -20,7 +20,8 @@ class CalculatorStates(StatesGroup):
 
 
 class CertificateStates(StatesGroup):
-    date_from_user = State()
+    date_from_user_5k = State()
+    date_from_user_10k = State()
     id_of_certificate = State()
 
 

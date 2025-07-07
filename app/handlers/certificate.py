@@ -66,10 +66,10 @@ async def current_date_handler(call: CallbackQuery):
 async def date_from_user_for_5k_handler(call: CallbackQuery, state: FSMContext):
     await call.message.edit_text(text="Введите дату в формате <b>ГГГГ-ММ-ДД</b>\n"
                                       "(например: <b>2011-09-11</b>)")
-    await state.set_state(CertificateStates.date_from_user)
+    await state.set_state(CertificateStates.date_from_user_5k)
 
 
-@router.message(CertificateStates.date_from_user)
+@router.message(CertificateStates.date_from_user_5k)
 async def date_from_user_for_5k_handler_(message: Message, state: FSMContext):
     user_date = message.text
 
@@ -109,10 +109,10 @@ async def current_date_handler(call: CallbackQuery):
 async def date_from_user_for_10k_handler(call: CallbackQuery, state: FSMContext):
     await call.message.edit_text(text="Введите дату в формате <b>ГГГГ-ММ-ДД</b>\n"
                                       "(например: <b>2011-09-11</b>)")
-    await state.set_state(CertificateStates.date_from_user)
+    await state.set_state(CertificateStates.date_from_user_10k)
 
 
-@router.message(CertificateStates.date_from_user)
+@router.message(CertificateStates.date_from_user_10k)
 async def date_from_user_for_10k_handler_(message: Message, state: FSMContext):
     user_date = message.text
 
